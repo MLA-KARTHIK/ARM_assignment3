@@ -12,6 +12,8 @@
 	 IMPORT printMsg_B
 	 IMPORT printMsg_C
 	 IMPORT printMsg_D
+	 IMPORT printMsg_E
+	 IMPORT printMsg_xnor
 	 export __main
 	 ENTRY 
 __main  function
@@ -33,6 +35,45 @@ Nandb   BL printMsg_C
 
 Norb	BL printMsg_D
 		B NOT
+
+Notb    BL printMsg_E
+		B XNOR
+
+XNOR	VLDR.F32   s23, =-5
+		VLDR.F32   s24, =20
+		VLDR.F32   s25, =10
+		VLDR.F32   s26, =1
+		VLDR.F32   s2, =0
+		
+		VMUL.F32   s23, s23, s20
+		VMUL.F32   s24, s24, s21
+		VMUL.F32   s25, s25, s22
+		VADD.F32   s2, s23, s24
+		VADD.F32   s2, s2, s25
+		VADD.F32   s2, s2, s26
+		BL sig
+
+		VCMP.F32   s17, s18
+		vmrs    APSR_nzcv, FPSCR
+		BGT xnor1
+		LDR   r3, =0
+		VCVT.U32.F32  s27, s20
+		VCVT.U32.F32  s28, s21
+		VCVT.U32.F32  s29, s22
+		VMOV.F32  r0, s27
+		VMOV.F32  r1, s28
+		VMOV.F32  r2, s29
+		BL printMsg_xnor
+		B stop
+xnor1	LDR   r3, =1
+		VCVT.U32.F32  s27, s20
+		VCVT.U32.F32  s28, s21
+		VCVT.U32.F32  s29, s22
+		VMOV.F32  r0, s27
+		VMOV.F32  r1, s28
+		VMOV.F32  r2, s29
+		BL printMsg_xnor
+		B stop
 
 NOT		VLDR.F32   s23, =0.5
 		VLDR.F32   s24, =0.7
@@ -59,7 +100,7 @@ NOT		VLDR.F32   s23, =0.5
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_not
-		B stop
+		B Notb
 Not1	LDR   r3, =1
 		VCVT.U32.F32  s27, s20
 		VCVT.U32.F32  s28, s21
@@ -68,7 +109,7 @@ Not1	LDR   r3, =1
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_not
-		B stop
+		B Notb
 	
 NOR		VLDR.F32   s23, =0.7
 		VLDR.F32   s24, =-0.7

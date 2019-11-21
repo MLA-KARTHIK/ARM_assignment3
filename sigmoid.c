@@ -88,6 +88,28 @@ void printMsg_D(const int a, const int b, const int c, const int d)
       ++ptr;
    }
 }
+void printMsg_E(const int a, const int b, const int c, const int d)
+{
+	 char Msg[100];
+	 char *ptr;
+	 sprintf(Msg, "XNOR gate logic table \nX1\t X2\t X3\t Y\n");
+	 ptr = Msg ;
+   while(*ptr != '\0'){
+      ITM_SendChar(*ptr);
+      ++ptr;
+   }
+}
+void printMsg_F(const int a, const int b, const int c, const int d)
+{
+	 char Msg[100];
+	 char *ptr;
+	 sprintf(Msg, "XOR gate logic table \nX1\t X2\t X3\t Y\n");
+	 ptr = Msg ;
+   while(*ptr != '\0'){
+      ITM_SendChar(*ptr);
+      ++ptr;
+   }
+}
 void printMsg_not(const int a, const int b, const int c, const int d)
 {
 	 char Msg[100];
@@ -100,6 +122,28 @@ void printMsg_not(const int a, const int b, const int c, const int d)
    }
 }
 void printMsg_nand(const int a, const int b, const int c, const int d)
+{
+	 char Msg[100];
+	 char *ptr;
+	 sprintf(Msg, "%d\t %d\t %d\t %d\n", a, b, c, d);
+	 ptr = Msg ;
+   while(*ptr != '\0'){
+      ITM_SendChar(*ptr);
+      ++ptr;
+   }
+}
+void printMsg_xnor(const int a, const int b, const int c, const int d)
+{
+	 char Msg[100];
+	 char *ptr;
+	 sprintf(Msg, "%d\t %d\t %d\t %d\n", a, b, c, d);
+	 ptr = Msg ;
+   while(*ptr != '\0'){
+      ITM_SendChar(*ptr);
+      ++ptr;
+   }
+}
+void printMsg_xor(const int a, const int b, const int c, const int d)
 {
 	 char Msg[100];
 	 char *ptr;

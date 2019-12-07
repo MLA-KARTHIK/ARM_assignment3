@@ -16,35 +16,39 @@
 	 IMPORT printMsg_xnor
 	 export __main
 	 ENTRY 
-__main  function
-	    
-		
-		VLDR.F32   s20, =0				; input 0 
-		VLDR.F32   s21, =0				; input 1
-		VLDR.F32   s22, =0				; input 2
+__main  function	    		
+		LDR		   r4, =4				; counter variable used to print the truth tables of each gate
+		LDR		   r5, =1				; used to subtract after each iterations
 		BL printMsg_A					; calling AND print routine
-		B ANDG
-				
+		B ANDGa							; Branch to perform and print AND logic
+		
+		
 ANDB	BL printMsg_O					; calling OR print routine
-		B ORG
+		B ORGa							; Branch to perform and print OR logic
 
 ORB		BL printMsg_B					; calling NAND print routine
-		B NAND
+		B NANDa							; Branch to perform and print NAND logic
 
 Nandb   BL printMsg_C					; calling NOR print routine
-		B NOR
+		B NORa							; Branch to perform and print NOR logic
 
 Norb	BL printMsg_D					; calling NOT print routine
-		B NOT
+		B NOTa							; Branch to perform and print NOT logic
 
 Notb    BL printMsg_E					; calling XNOR print routine
-		B XNOR
-
+		B XNORa							; Branch to perform and print XNOR logic
+		
+		
+XNORa	VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =0				; input 2
+		LDR        r4,  =4
 XNOR	VLDR.F32   s23, =-5				; weight 0 XNOR gate
 		VLDR.F32   s24, =20				; weight 1 XNOR gate
 		VLDR.F32   s25, =10				; weight 2 XNOR gate
 		VLDR.F32   s26, =1				; bias value for XNOR gate
 		VLDR.F32   s2, =0
+		LTORG							; The LTORG directive instructs the assembler to assemble the current literal pool immediately.                   
 		
 		VMUL.F32   s23, s23, s20
 		VMUL.F32   s24, s24, s21
@@ -61,29 +65,61 @@ XNOR	VLDR.F32   s23, =-5				; weight 0 XNOR gate
 		VCVT.U32.F32  s27, s20			; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27		
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print	
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_xnor				; Printing theesult of XNOR logic
+		SUB       r4, r5				; Subtracting r4 (which is initialized to 4) 
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		XoF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     XoF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     XoF1
 		B stop
 xnor1	LDR   r3, =1
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print			
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_xnor				; Printing theesult of XNOR logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		XoF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     XoF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     XoF1
 		B stop
+XoF3    VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B XNOR
+XoF2	VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =0				; input 2
+		B XNOR
+XoF1    VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B XNOR
+		
 
+NOTa    VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =0				; input 2
+		LDR        r4,  =2
 NOT		VLDR.F32   s23, =0.5			; weight 0 for NOT gate
-		VLDR.F32   s24, =0.7			; weight 1 for NOT gate
+		VLDR.F32   s24, =-0.7			; weight 1 for NOT gate
 		;VLDR.F32   s25, =-0.7
 		VLDR.F32   s26, =0.1			; bias value
 		VLDR.F32   s2, =0
+		LTORG
 		
 		VMUL.F32   s23, s23, s20
-		VMUL.F32   s24, s24, s21
+		VMUL.F32   s24, s24, s22
 		;VMUL.F32   s25, s25, s22
 		VADD.F32   s2, s23, s24
 		;VADD.F32   s2, s2, s25
@@ -97,26 +133,42 @@ NOT		VLDR.F32   s23, =0.5			; weight 0 for NOT gate
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_not					; Printing theesult of NOT logic
+		SUB       r4, r5
+		CMP       r4, #1				; If r4=1, change the input to 110 and re-compute
+		BEQ		NtF1
 		B Notb
 Not1	LDR   r3, =1
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_not					; Printing theesult of NOT logic
+		SUB       r4, r5
+		CMP       r4, #1				; If r4=1, change the input to 110 and re-compute
+		BEQ		NtF1
 		B Notb
-	
+NtF1    VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =1				; input 2	
+		B NOT		
+		
+
+NORa    VLDR.F32   s20, =0				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =0				; input 2
+		LDR        r4, =4
 NOR		VLDR.F32   s23, =0.5			; weight 0 for NOR gate
 		VLDR.F32   s24, =-0.7			; weight 1 for NOR gate
 		VLDR.F32   s25, =-0.7			; weight 3 for NOR gate
 		VLDR.F32   s26, =0.1			; Bias for NOR gate
 		VLDR.F32   s2, =0
+		LTORG
 		
 		VMUL.F32   s23, s23, s20
 		VMUL.F32   s24, s24, s21
@@ -133,21 +185,52 @@ NOR		VLDR.F32   s23, =0.5			; weight 0 for NOR gate
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_nor					; Printing theesult of NOR logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		NoF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     NoF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     NoF1
 		B Norb
 Nor1	LDR   r3, =1
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_nor					; Printing theesult of NOR logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		NoF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     NoF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     NoF1
 		B Norb
+NoF3    VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B NOR
+NoF2	VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =0				; input 2
+		B NOR
+NoF1    VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B NOR
 
+
+NANDa	VLDR.F32   s20, =0				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =0				; input 2
+		LDR        r4, =4
 NAND	VLDR.F32   s23, =0.6			; weight 1 for NAND gate
 		VLDR.F32   s24, =-0.8			; weight 2 for NAND gate
 		VLDR.F32   s25, =-0.8			; weight 3 for NAND gate
@@ -169,22 +252,52 @@ NAND	VLDR.F32   s23, =0.6			; weight 1 for NAND gate
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_nand				; Printing theesult of NAND logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		NaF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     NaF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     NaF1
 		B Nandb
 Nand1	LDR   r3, =1
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_nand				; Printing theesult of NAND logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		NaF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     NaF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     NaF1
 		B Nandb
+NaF3     VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B NAND
+NaF2	VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =0				; input 2
+		B NAND
+NaF1    VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B NAND
 
 
+ORGa	VLDR.F32   s20, =0				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =0				; input 2
+		LDR        r4, =4
 ORG		VLDR.F32   s23, =-0.1			; weight 1 for OR gate
 		VLDR.F32   s24, =0.7			; weight 2 for OR gate
 		VLDR.F32   s25, =0.7			; weight 3 for OR gate
@@ -206,24 +319,54 @@ ORG		VLDR.F32   s23, =-0.1			; weight 1 for OR gate
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_or					; Printing theesult of OR logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		OF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     OF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     OF1
 		B ORB
 OR1		LDR   r3, =1
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
 		BL printMsg_or					; Printing theesult of OR logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		OF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     OF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     OF1
 		B ORB
+OF3     VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B ORG
+OF2		VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =0				; input 2
+		B ORG
+OF1     VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B ORG
+		
 
 
 
-ANDG    VLDR.F32   s23, =-0.1			; weight 1 for AND gate
+ANDGa   VLDR.F32   s20, =0				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =0				; input 2 
+ANDG	VLDR.F32   s23, =-0.1			; weight 1 for AND gate
 		VLDR.F32   s24, =0.2			; weight 2 for AND gate
 		VLDR.F32   s25, =0.2			; weight 3 for AND gate
 		VLDR.F32   s26, =-0.2			; Bias value for AND gate
@@ -244,20 +387,47 @@ ANDG    VLDR.F32   s23, =-0.1			; weight 1 for AND gate
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
-		BL printMsg						; Printing theesult of AND logic
+		BL printMsg						; Printing the result of AND logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		AF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     AF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     AF1
 		B ANDB
 M1		LDR   r3, =1
 		VCVT.U32.F32  s27, s20  		; Converting the floating point number to integer to print
 		VCVT.U32.F32  s28, s21
 		VCVT.U32.F32  s29, s22
-		VMOV.F32  r0, s27
+		VMOV.F32  r0, s27				; Moving the data to r0,r1,r2 registers to print
 		VMOV.F32  r1, s28
 		VMOV.F32  r2, s29
-		BL printMsg						; Printing theesult of AND logic
+		BL printMsg						; Printing the result of AND logic
+		SUB       r4, r5
+		CMP       r4, #3				; If r4=3, change the input to 101 and re-compute
+		BEQ		AF3
+		CMP       r4, #2				; If r4=2, change the input to 110 and re-compute
+		BEQ     AF2
+		CMP       r4, #1				; If r4=1, change the input to 111 and re-compute
+		BEQ     AF1
 		B ANDB
+AF3		VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =0				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B ANDG
+AF2     VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =0				; input 2
+        B ANDG
+AF1     VLDR.F32   s20, =1				; input 0 
+		VLDR.F32   s21, =1				; input 1
+		VLDR.F32   s22, =1				; input 2
+		B ANDG
+
 
 
 sig		VLDR.F32   s0, =-1				; starting point Signum function 
